@@ -47,11 +47,11 @@ function genericScan(redis, cmd, key, pattern, each_callback, done_callback) {
                                         } else if (sresult === 'list') {
                                             //each_callback('list', subkey, null, null, ecb);
                                             redis.lrange(subkey, [0, -1], function(err, values) {
-                                                var idx=0;
-                                                var length = values.length;
                                                 if(err) {
                                                     ecb(err);
                                                 } else {
+                                                    var idx=0;
+                                                    var length = values.length;
                                                     async.doWhilst(
                                                         function (wcb) {
                                                             each_callback('list', subkey, idx, length, values[idx], wcb);
