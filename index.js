@@ -46,26 +46,16 @@ function genericScan(redis, cmd, key, pattern, each_callback, done_callback) {
                                             genericScan(redis, 'ZSCAN', subkey, null, each_callback, ecb);
                                         } else if (sresult === 'list') {
                                             //each_callback('list', subkey, null, null, ecb);
-                                            redis.llen(subkey, function (err, length) {
-                                                var idx = 0;
-                                                length = parseInt(length);
-                                                if (err) {
+                                            redis.lrange(subkey, [0, -1], function(err, values) {
+                                                if(err) {
                                                     ecb(err);
                                                 } else {
-                                                    async.doWhilst(
-                                                        function (wcb) {
-                                                            redis.lindex(subkey, idx, function (err, value) {
-                                                                each_callback('list', subkey, idx, length, value, wcb);
-                                                            });
-                                                        },
-                                                        function () { idx++; return idx < length; },
-                                                        function (err) {
-                                                            ecb(err)
-                                                        }
-                                                    );
+                                                    for(var idx=0;idx<values.length;idx++) {
+                                                        each_callback('list', subkey, idx, values.length, values[idx], wcb);
+                                                    }
                                                 }
                                             });
-                                    }
+                                        }
                                     }
                                 });
                             } else if (cmd === 'SSCAN') {
