@@ -47,12 +47,20 @@ function genericScan(redis, cmd, key, pattern, each_callback, done_callback) {
                                         } else if (sresult === 'list') {
                                             //each_callback('list', subkey, null, null, ecb);
                                             redis.lrange(subkey, [0, -1], function(err, values) {
+                                                var idx=0;
+                                                var length = values.length;
                                                 if(err) {
                                                     ecb(err);
                                                 } else {
-                                                    for(var idx=0;idx<values.length;idx++) {
-                                                        each_callback('list', subkey, idx, values.length, values[idx], wcb);
-                                                    }
+                                                    async.doWhilst(
+                                                        function (wcb) {
+                                                            each_callback('list', subkey, idx, length, values[idx], wcb);
+                                                        },
+                                                        function () { idx++; return idx < length; },
+                                                        function (err) {
+                                                            ecb(err)
+                                                        }
+                                                    );
                                                 }
                                             });
                                         }
